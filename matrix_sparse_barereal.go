@@ -31,6 +31,7 @@ import "os"
 import "unsafe"
 
 /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
 type SparseBareRealMatrix struct {
@@ -146,6 +147,17 @@ func (matrix *SparseBareRealMatrix) index(i, j int) int {
 	} else {
 		return (matrix.rowOffset+i)*matrix.colMax + (matrix.colOffset + j)
 	}
+}
+func (matrix *SparseBareRealMatrix) ij(k int) (int, int) {
+  if matrix.transposed {
+    i := (k%matrix.colMax) - matrix.colOffset
+    j := (k/matrix.colMax) - matrix.rowOffset
+    return i, j
+  } else {
+    i := (k%matrix.rowMax) - matrix.rowOffset
+    j := (k/matrix.rowMax) - matrix.colOffset
+    return i, j
+  }
 }
 func (matrix *SparseBareRealMatrix) Dims() (int, int) {
 	if matrix == nil {
@@ -650,4 +662,34 @@ func (obj *SparseBareRealMatrix) UnmarshalJSON(data []byte) error {
 	obj.transposed = false
 	obj.initTmp()
 	return nil
+}
+/* iterator methods
+ * -------------------------------------------------------------------------- */
+func (obj *SparseBareRealMatrix) ConstIterator() MatrixConstIterator {
+  return obj.ITERATOR()
+}
+func (obj *SparseBareRealMatrix) Iterator() MatrixIterator {
+  return obj.ITERATOR()
+}
+func (obj *SparseBareRealMatrix) ITERATOR() *SparseBareRealMatrixIterator {
+  r := SparseBareRealMatrixIterator{*obj.values.ITERATOR(), obj}
+  return &r
+}
+/* iterator
+ * -------------------------------------------------------------------------- */
+type SparseBareRealMatrixIterator struct {
+  SparseBareRealVectorIterator
+  m *SparseBareRealMatrix
+}
+func (obj *SparseBareRealMatrixIterator) Index() (int, int) {
+  return obj.m.ij(obj.SparseBareRealVectorIterator.Index())
+}
+func (obj *SparseBareRealMatrixIterator) Clone() *SparseBareRealMatrixIterator {
+  return &SparseBareRealMatrixIterator{*obj.SparseBareRealVectorIterator.Clone(), obj.m}
+}
+func (obj *SparseBareRealMatrixIterator) CloneConstIterator() MatrixConstIterator {
+  return &SparseBareRealMatrixIterator{*obj.SparseBareRealVectorIterator.Clone(), obj.m}
+}
+func (obj *SparseBareRealMatrixIterator) CloneIterator() MatrixIterator {
+  return &SparseBareRealMatrixIterator{*obj.SparseBareRealVectorIterator.Clone(), obj.m}
 }
