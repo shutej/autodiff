@@ -93,10 +93,9 @@ func AsSparseBareRealMatrix(matrix ConstMatrix) *SparseBareRealMatrix {
 	}
 	n, m := matrix.Dims()
 	r := NullSparseBareRealMatrix(n, m)
-	for i := 0; i < n; i++ {
-		for j := 0; j < m; j++ {
-			r.AT(i, j).Set(matrix.ConstAt(i, j))
-		}
+	for it := matrix.ConstIterator(); it.Ok(); it.Next() {
+		i, j := it.Index()
+		r.AT(i, j).Set(it.GetConst())
 	}
 	return r
 }
@@ -149,15 +148,15 @@ func (matrix *SparseBareRealMatrix) index(i, j int) int {
 	}
 }
 func (matrix *SparseBareRealMatrix) ij(k int) (int, int) {
-  if matrix.transposed {
-    i := (k%matrix.colMax) - matrix.colOffset
-    j := (k/matrix.colMax) - matrix.rowOffset
-    return i, j
-  } else {
-    i := (k%matrix.rowMax) - matrix.rowOffset
-    j := (k/matrix.rowMax) - matrix.colOffset
-    return i, j
-  }
+	if matrix.transposed {
+		i := (k % matrix.colMax) - matrix.colOffset
+		j := (k / matrix.colMax) - matrix.rowOffset
+		return i, j
+	} else {
+		i := (k % matrix.rowMax) - matrix.rowOffset
+		j := (k / matrix.rowMax) - matrix.colOffset
+		return i, j
+	}
 }
 func (matrix *SparseBareRealMatrix) Dims() (int, int) {
 	if matrix == nil {
@@ -238,10 +237,9 @@ func (matrix *SparseBareRealMatrix) AsSparseBareRealVector() *SparseBareRealVect
 		(matrix.rows < matrix.rowMax-matrix.rowOffset) {
 		n, m := matrix.Dims()
 		v := nilSparseBareRealVector(n * m)
-		for i := 0; i < n; i++ {
-			for j := 0; j < m; j++ {
-				v.At(i*matrix.cols + j).Set(matrix.AT(i, j))
-			}
+		for it := matrix.ConstIterator(); it.Ok(); it.Next() {
+			i, j := it.Index()
+			v.At(i*matrix.cols + j).Set(matrix.AT(i, j))
 		}
 		return v
 	} else {
@@ -312,10 +310,9 @@ func (matrix *SparseBareRealMatrix) ConstDiag() ConstVector {
 func (matrix *SparseBareRealMatrix) GetValues() []float64 {
 	n, m := matrix.Dims()
 	s := make([]float64, n*m)
-	for i := 0; i < n; i++ {
-		for j := 0; j < m; j++ {
-			s[i*m+j] = matrix.ConstAt(i, j).GetValue()
-		}
+	for it := matrix.ConstIterator(); it.Ok(); it.Next() {
+		i, j := it.Index()
+		s[i*m+j] = matrix.ConstAt(i, j).GetValue()
 	}
 	return s
 }
@@ -663,33 +660,36 @@ func (obj *SparseBareRealMatrix) UnmarshalJSON(data []byte) error {
 	obj.initTmp()
 	return nil
 }
+
 /* iterator methods
  * -------------------------------------------------------------------------- */
 func (obj *SparseBareRealMatrix) ConstIterator() MatrixConstIterator {
-  return obj.ITERATOR()
+	return obj.ITERATOR()
 }
 func (obj *SparseBareRealMatrix) Iterator() MatrixIterator {
-  return obj.ITERATOR()
+	return obj.ITERATOR()
 }
 func (obj *SparseBareRealMatrix) ITERATOR() *SparseBareRealMatrixIterator {
-  r := SparseBareRealMatrixIterator{*obj.values.ITERATOR(), obj}
-  return &r
+	r := SparseBareRealMatrixIterator{*obj.values.ITERATOR(), obj}
+	return &r
 }
+
 /* iterator
  * -------------------------------------------------------------------------- */
 type SparseBareRealMatrixIterator struct {
-  SparseBareRealVectorIterator
-  m *SparseBareRealMatrix
+	SparseBareRealVectorIterator
+	m *SparseBareRealMatrix
 }
+
 func (obj *SparseBareRealMatrixIterator) Index() (int, int) {
-  return obj.m.ij(obj.SparseBareRealVectorIterator.Index())
+	return obj.m.ij(obj.SparseBareRealVectorIterator.Index())
 }
 func (obj *SparseBareRealMatrixIterator) Clone() *SparseBareRealMatrixIterator {
-  return &SparseBareRealMatrixIterator{*obj.SparseBareRealVectorIterator.Clone(), obj.m}
+	return &SparseBareRealMatrixIterator{*obj.SparseBareRealVectorIterator.Clone(), obj.m}
 }
 func (obj *SparseBareRealMatrixIterator) CloneConstIterator() MatrixConstIterator {
-  return &SparseBareRealMatrixIterator{*obj.SparseBareRealVectorIterator.Clone(), obj.m}
+	return &SparseBareRealMatrixIterator{*obj.SparseBareRealVectorIterator.Clone(), obj.m}
 }
 func (obj *SparseBareRealMatrixIterator) CloneIterator() MatrixIterator {
-  return &SparseBareRealMatrixIterator{*obj.SparseBareRealVectorIterator.Clone(), obj.m}
+	return &SparseBareRealMatrixIterator{*obj.SparseBareRealVectorIterator.Clone(), obj.m}
 }

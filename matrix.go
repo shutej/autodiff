@@ -23,41 +23,41 @@ import "encoding/json"
 /* -------------------------------------------------------------------------- */
 
 type MatrixConstIterator interface {
-  CloneConstIterator() MatrixConstIterator
-  GetValue() float64
-  GetConst() ConstScalar
-  Ok      () bool
-  Next    ()
-  Index   () (int, int)
+	CloneConstIterator() MatrixConstIterator
+	GetValue() float64
+	GetConst() ConstScalar
+	Ok() bool
+	Next()
+	Index() (int, int)
 }
 
 type MatrixConstJointIterator interface {
-  CloneConstJointIterator() MatrixConstJointIterator
-  GetValue() (float64, float64)
-  GetConst() (ConstScalar, ConstScalar)
-  Ok      () bool
-  Next    ()
-  Index   () (int, int)
+	CloneConstJointIterator() MatrixConstJointIterator
+	GetValue() (float64, float64)
+	GetConst() (ConstScalar, ConstScalar)
+	Ok() bool
+	Next()
+	Index() (int, int)
 }
 
 type MatrixIterator interface {
-  CloneIterator() MatrixIterator
-  GetConst() ConstScalar
-  GetValue() float64
-  Get     () Scalar
-  Ok      () bool
-  Next    ()
-  Index   () (int, int)
+	CloneIterator() MatrixIterator
+	GetConst() ConstScalar
+	GetValue() float64
+	Get() Scalar
+	Ok() bool
+	Next()
+	Index() (int, int)
 }
 
 type MatrixJointIterator interface {
-  CloneJointIterator() MatrixJointIterator
-  GetConst() (ConstScalar, ConstScalar)
-  GetValue() (float64, float64)
-  Get     () (Scalar, ConstScalar)
-  Ok      () bool
-  Next    ()
-  Index   () (int, int)
+	CloneJointIterator() MatrixJointIterator
+	GetConst() (ConstScalar, ConstScalar)
+	GetValue() (float64, float64)
+	Get() (Scalar, ConstScalar)
+	Ok() bool
+	Next()
+	Index() (int, int)
 }
 
 /* matrix type declaration
@@ -77,6 +77,7 @@ type ConstMatrix interface {
 	GetValues() []float64
 	AsConstVector() ConstVector
 	CloneConstMatrix() ConstMatrix
+	ConstIterator() MatrixConstIterator
 	// private methods
 	storageLocation() uintptr
 }
@@ -121,6 +122,9 @@ type Matrix interface {
 	// a vector, the order is unspecified
 	AsVector() Vector
 	AsConstVector() ConstVector
+	// iterators
+	ConstIterator() MatrixConstIterator
+	Iterator() MatrixIterator
 	// math operations
 	MaddM(a, b ConstMatrix) Matrix
 	MaddS(a ConstMatrix, b ConstScalar) Matrix
